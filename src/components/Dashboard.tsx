@@ -146,30 +146,57 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
         <div className="space-y-8">
           <section className="bg-surface rounded-[40px] p-10 flex flex-col items-center">
-            <div className="relative w-64 h-64 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90">
-                <circle
-                  cx="128"
-                  cy="128"
-                  r="110"
-                  className="fill-none stroke-accent stroke-[12]"
+            <div className="relative w-64 h-80 bg-accent/5 rounded-[48px] border-4 border-accent/20 overflow-hidden shadow-inner group/reservoir">
+              {/* Dynamic Liquid Fill */}
+              <motion.div
+                className={`absolute bottom-0 left-0 right-0 ${isOverGoal ? 'bg-gradient-to-t from-error to-error/60' : 'bg-gradient-to-t from-secondary to-secondary/60'}`}
+                initial={{ height: '0%' }}
+                animate={{ height: `${progress}%` }}
+                transition={{ duration: 2, ease: "circOut" }}
+              >
+                {/* Wave Animations */}
+                <motion.div
+                  className="absolute -top-12 left-[-50%] w-[200%] h-24 bg-white/20 rounded-[45%] opacity-40"
+                  animate={{ 
+                    rotate: 360,
+                    x: [0, 20, 0]
+                  }}
+                  transition={{ 
+                    rotate: { repeat: Infinity, duration: 8, ease: "linear" },
+                    x: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+                  }}
                 />
-                <motion.circle
-                  cx="128"
-                  cy="128"
-                  r="110"
-                  initial={{ strokeDashoffset: 691 }}
-                  animate={{ strokeDashoffset: 691 - (691 * progress) / 100 }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  strokeDasharray="691"
-                  className={`fill-none stroke-[12] stroke-linecap-round ${isOverGoal ? 'stroke-error' : 'stroke-secondary'}`}
+                <motion.div
+                  className="absolute -top-14 left-[-40%] w-[200%] h-24 bg-white/10 rounded-[42%] opacity-30"
+                  animate={{ 
+                    rotate: -360,
+                    x: [0, -20, 0]
+                  }}
+                  transition={{ 
+                    rotate: { repeat: Infinity, duration: 12, ease: "linear" },
+                    x: { repeat: Infinity, duration: 6, ease: "easeInOut" }
+                  }}
                 />
-              </svg>
-              <div className="absolute text-center">
-                <span className="text-xs font-black text-text-muted uppercase tracking-widest block mb-1">Remaining</span>
-                <span className="text-5xl font-black text-primary block">{remaining}</span>
-                <span className="text-xs font-black text-text-muted uppercase tracking-widest block mt-1">kcal</span>
+              </motion.div>
+              
+              {/* Stats Overlay */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] block mb-1">Remaining Intake</span>
+                  <span className="text-6xl font-black text-primary tracking-tighter block leading-none">
+                    {remaining}
+                  </span>
+                  <span className="text-xs font-black text-primary/30 uppercase tracking-[0.3em] block mt-2">kilocalories</span>
+                </motion.div>
               </div>
+
+              {/* Glass Reflection */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 pointer-events-none" />
+              <div className="absolute top-8 left-8 w-4 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
             </div>
 
             <div className="mt-10 w-full grid grid-cols-2 gap-4">

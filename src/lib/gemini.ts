@@ -1,7 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
 import { UserProfile, Meal } from "../types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function getDietarySuggestions(
   profile: UserProfile,
@@ -26,18 +23,20 @@ export async function getDietarySuggestions(
   `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
+    const response = await fetch("/api/ai/suggestions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt,
         systemInstruction: "You are a professional nutritionist and dietary coach. Provide helpful, accurate, and encouraging food suggestions based on calorie targets.",
-        temperature: 0.7,
-      }
+      })
     });
-
-    return response.text || "I couldn't generate suggestions at this time. Try again later!";
+    
+    if (!response.ok) throw new Error("API request failed");
+    const data = await response.json();
+    return data.text || "I couldn't generate suggestions at this time. Try again later!";
   } catch (error) {
-    console.error("Gemini API error:", error);
+    console.error("Gemini API proxy error:", error);
     return "Sorry, I'm having trouble connecting to my creative kitchen. Please try again later.";
   }
 }
@@ -60,47 +59,37 @@ export async function getSpecificMealSuggestions(
   `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
+    const response = await fetch("/api/ai/suggestions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt,
         systemInstruction: "You are a meal planning expert. You provide short, actionable meal recommendations based on strict calorie budgets.",
-        temperature: 0.6,
-      }
+      })
     });
 
-    return response.text || "No suggestions available";
+    if (!response.ok) throw new Error("API request failed");
+    const data = await response.json();
+    return data.text || "No suggestions available";
   } catch (error) {
-    console.error("Gemini Suggestions error:", error);
+    console.error("Gemini Suggestions proxy error:", error);
     return "Failed to fetch meal ideas.";
   }
 }
 
 export async function estimateMealCalories(mealName: string, portion: string): Promise<number> {
-  const prompt = `
-    Estimate the total calories for the following meal:
-    Meal: ${mealName}
-    Portion Size: ${portion}
-
-    Provide only the estimated calorie number as a plain integer. If you are unsure, provide a reasonable average estimate based on standard nutritional data. 
-    Do not include any text, units, or explanation. Just the number.
-  `;
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview", // Fast model for simple estimation
-      contents: prompt,
-      config: {
-        systemInstruction: "You are a nutritional database. You respond with raw numbers representing calorie estimates.",
-        temperature: 0.1,
-      }
+    const response = await fetch("/api/ai/estimate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mealName, portion })
     });
-
-    const text = response.text || "0";
-    const calories = parseInt(text.replace(/[^0-9]/g, ''));
-    return isNaN(calories) ? 0 : calories;
+    
+    if (!response.ok) throw new Error("API request failed");
+    const data = await response.json();
+    return data.calories || 0;
   } catch (error) {
-    console.error("Gemini Estimation API error:", error);
+    console.error("Gemini Estimation proxy error:", error);
     return 0;
   }
 }
